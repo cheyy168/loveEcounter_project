@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "469911106051",
+    "project_id": "loveecounter-a578a",
+    "storage_bucket": "loveecounter-a578a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:469911106051:android:b0537fbee33bfa81795436",
+        "android_client_info": {
+          "package_name": "com.example.love_ecounter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAO4LlHXMJxjy0CNSPncVqomL_q3Uc_7PY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
