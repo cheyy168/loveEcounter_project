@@ -138,4 +138,3 @@ class CheckoutScreen extends StatelessWidget {
     );
   }
 }
-"123"
