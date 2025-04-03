@@ -1,21 +1,87 @@
 import 'package:flutter/material.dart';
-import 'ProfileScreen.dart'; // Import the ProfileScreen
-import 'login_screen.dart'; // Import the login screen
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'ProfileScreen.dart';
+import 'login_screen.dart';
 import 'how_to_use.dart';
 import 'EmployeeDetail.dart';
 import 'Pricelist.dart';
-import 'dateplan.dart'; // Import the DatePlanScreen
-import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
+import 'dateplan.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<Map<String, dynamic>> _bookings = [];
+  int _unreadBookingsCount = 0;
+  bool _loadingBookings = true;
+  String _userName = 'Guest';
+  bool _loadingUser = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+    _loadBookings();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final doc = await _firestore.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          setState(() {
+            _userName = doc.data()?['full_name'] ?? 
+                       user.displayName ?? 
+                       user.email?.split('@')[0] ?? 
+                       'User';
+            _loadingUser = false;
+          });
+        }
+      }
+    } catch (e) {
+      setState(() => _loadingUser = false);
+      if (kDebugMode) {
+        print('Error loading user data: $e');
+      }
+    }
+  }
+
+  Future<void> _loadBookings() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final snapshot = await _firestore
+            .collection('bookings')
+            .where('user_id', isEqualTo: user.uid)
+            .orderBy('created_at', descending: true)
+            .get();
+
+        setState(() {
+          _bookings = snapshot.docs.map((doc) => doc.data()).toList();
+          _unreadBookingsCount = _bookings.length;
+          _loadingBookings = false;
+        });
+      }
+    } catch (e) {
+      setState(() => _loadingBookings = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading bookings: ${e.toString()}')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final String userName =
-        ModalRoute.of(context)!.settings.arguments as String? ?? 'Guest';
-    final String displayName = userName.split('@')[0];
-    final String uid = FirebaseAuth.instance.currentUser?.uid ?? 'UNKNOWN_USER'; // Fetch the UID from FirebaseAuth
+    final String uid = _auth.currentUser?.uid ?? 'UNKNOWN_USER';
 
     return Scaffold(
       appBar: AppBar(
@@ -23,29 +89,29 @@ class HomeScreen extends StatelessWidget {
         title: Row(
           children: [
             Text(
-              'Hi, $displayName!',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.white),
+              _loadingUser ? 'Loading...' : 'Hi, $_userName!',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ],
         ),
         actions: [
+          _buildNotificationIcon(),
           IconButton(
             icon: const Icon(Icons.account_circle, color: Colors.white),
-            onPressed: () {
-              // Navigate to ProfileScreen
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ProfileScreen(uid: uid), // Pass UID to ProfileScreen
-                ),
-              );
-            },
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfileScreen(uid: uid),
+              ),
+            ).then((_) => _refreshData()),
           ),
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: () {
-              _showLogoutDialog(context);
-            },
+            onPressed: _showLogoutDialog,
           ),
         ],
       ),
@@ -57,7 +123,7 @@ class HomeScreen extends StatelessWidget {
             _buildNavigationButtons(context),
             const SizedBox(height: 20),
             const Text(
-              'Why We Are Cambodia’s No.1 Dating App',
+              'Why We Are Cambodia\'s No.1 Dating App',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
@@ -69,6 +135,210 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _refreshData() async {
+    await _loadUserData();
+    await _loadBookings();
+  }
+
+  Widget _buildNotificationIcon() {
+    return Stack(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.notifications, color: Colors.white),
+          onPressed: _showBookingHistory,
+        ),
+        if (_unreadBookingsCount > 0)
+          Positioned(
+            right: 8,
+            top: 8,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 14,
+                minHeight: 14,
+              ),
+              child: Text(
+                _unreadBookingsCount.toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 8,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _showBookingHistory() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Your Booking History',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (_loadingBookings)
+                const Center(child: CircularProgressIndicator())
+              else if (_bookings.isEmpty)
+                const Center(
+                  child: Text(
+                    'No bookings yet',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: _bookings.length,
+                    separatorBuilder: (context, index) => const Divider(height: 16),
+                    itemBuilder: (context, index) {
+                      final booking = _bookings[index];
+                      return _buildBookingCard(booking);
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBookingCard(Map<String, dynamic> booking) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  booking['companion_name'] ?? 'Unknown Companion',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.pink,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(booking['status']),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    booking['status']?.toString().toUpperCase() ?? 'UNKNOWN',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _buildBookingDetail(Icons.calendar_today, booking['date_time']),
+            _buildBookingDetail(Icons.access_time, booking['duration']),
+            _buildBookingDetail(Icons.location_pin, booking['meeting_place']),
+            if (booking['optional_services'] != null &&
+                (booking['optional_services'] as List).isNotEmpty)
+              _buildBookingDetail(
+                Icons.add_circle_outline,
+                'Extras: ${(booking['optional_services'] as List).join(', ')}',
+              ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '\$${booking['total_amount']?.toStringAsFixed(2) ?? '0.00'}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  _formatDate(booking['created_at']),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBookingDetail(IconData icon, dynamic value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Colors.pink),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value?.toString() ?? 'Not specified',
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'confirmed':
+        return Colors.green;
+      case 'completed':
+        return Colors.blue;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _formatDate(Timestamp? timestamp) {
+    if (timestamp == null) return 'Unknown date';
+    final date = timestamp.toDate();
+    return '${date.day}/${date.month}/${date.year}';
   }
 
   Widget _buildNavigationButtons(BuildContext context) {
@@ -110,8 +380,7 @@ class HomeScreen extends StatelessWidget {
       {
         "icon": Icons.favorite,
         "title": "We Offer Hospitality!",
-        "description":
-            "Enjoy premium services with a warm and professional touch!",
+        "description": "Enjoy premium services with a warm and professional touch!",
       },
       {
         "icon": Icons.account_balance_wallet,
@@ -121,8 +390,7 @@ class HomeScreen extends StatelessWidget {
       {
         "icon": Icons.verified,
         "title": "Operated by a Reliable Organization",
-        "description":
-            "We operate from a registered address with professional support.",
+        "description": "We operate from a registered address with professional support.",
       },
       {
         "icon": Icons.check_circle,
@@ -268,8 +536,7 @@ class HomeScreen extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(12),
-              ),
+                top: Radius.circular(12)),
               child: Image.asset(
                 imagePath,
                 fit: BoxFit.cover,
@@ -307,8 +574,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Show logout dialog
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog() {
     showDialog(
       context: context,
       builder: (context) {
@@ -317,14 +583,13 @@ class HomeScreen extends StatelessWidget {
           content: const Text("Are you sure you want to log out?"),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-              },
+              onPressed: () => Navigator.pop(context),
               child: const Text("Cancel"),
             ),
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Close the dialog
+                _auth.signOut();
+                Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()),

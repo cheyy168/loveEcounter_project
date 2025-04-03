@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../services/firestore_service.dart';
+import '../services/firestore_service.dart' as firestore_service;
 import 'information_user_screen.dart'; // Import InformationUserScreen
 
 class RegisterScreen extends StatefulWidget {
@@ -14,7 +14,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
-  final FirestoreService _firestoreService = FirestoreService();
+  final firestore_service.FirestoreService _firestoreService = firestore_service.FirestoreService();
 
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
@@ -54,7 +54,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     var user = await _authService.register(email, password);
     if (user != null) {
       // Fix: Provide a default empty string for fullName
-      await _firestoreService.saveUserData(user.uid, email, "");
+      await _firestoreService.saveUserData(uid: user.uid, email: email, fullName: "");
 
       // Navigate to InformationUserScreen for additional info input
       Navigator.pushReplacement(

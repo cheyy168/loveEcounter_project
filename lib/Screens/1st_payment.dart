@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '2nd_payment.dart'; // Make sure to import the 2nd payment screen
 
 class CheckoutScreen extends StatelessWidget {
   final String companionName;
@@ -26,7 +27,7 @@ class CheckoutScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.purple, semanticLabel: 'Back'),
+          icon: const Icon(Icons.arrow_back, color: Colors.purple),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -51,13 +52,13 @@ class CheckoutScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
-                Icon(Icons.description, color: Colors.blue, semanticLabel: 'Description Icon'),
+                Icon(Icons.description, color: Colors.blue),
                 SizedBox(width: 10),
-                Icon(Icons.calendar_today, color: Colors.grey, semanticLabel: 'Calendar Icon'),
+                Icon(Icons.calendar_today, color: Colors.grey),
               ],
             ),
             const SizedBox(height: 20),
-            const Icon(Icons.touch_app, size: 80, color: Colors.purple, semanticLabel: 'Touch Icon'),
+            const Icon(Icons.touch_app, size: 80, color: Colors.purple),
             const SizedBox(height: 20),
             const Text(
               'The Information about your companion',
@@ -75,14 +76,14 @@ class CheckoutScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.account_circle, size: 30, semanticLabel: 'Account Icon'),
+                      const Icon(Icons.account_circle, size: 30),
                       const SizedBox(width: 10),
                       Text(
                         'Ms. $companionName',
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 5),
-                      const Icon(Icons.verified, color: Colors.blue, size: 20, semanticLabel: 'Verified Icon'),
+                      const Icon(Icons.verified, color: Colors.blue, size: 20),
                       const Spacer(),
                     ],
                   ),
@@ -93,11 +94,9 @@ class CheckoutScreen extends StatelessWidget {
                   const SizedBox(height: 5),
                   Text('Contact: $phoneNumber'),
                   const SizedBox(height: 5),
-                  Text(
-                    'Optional Services: ${optionalServices.isNotEmpty ? optionalServices.join(", ") : "No optional services selected"}',
-                  ),
+                  Text('Optional Services: ${optionalServices.join(", ")}'),
                   const SizedBox(height: 5),
-                  Text('Total: \$${totalPrice.toStringAsFixed(2)}'),
+                  Text('Total: \$$totalPrice'),
                 ],
               ),
             ),
@@ -111,7 +110,18 @@ class CheckoutScreen extends StatelessWidget {
                 minimumSize: const Size(double.infinity, 50),
               ),
               onPressed: () {
-                // Navigate to the next payment screen or perform payment logic
+                // Navigate to 2nd payment screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SecondPaymentScreen(
+                      companionName: companionName,
+                      totalPrice: totalPrice,
+                      meetingPlace: meetingPlace,
+                      dateTime: dateTime,
+                    ),
+                  ),
+                );
               },
               child: const Text(
                 'Next',
@@ -120,9 +130,7 @@ class CheckoutScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             TextButton(
-              onPressed: () {
-                // Add functionality for contacting support
-              },
+              onPressed: () {},
               child: const Text(
                 'Something went wrong or any concern please contact us here.',
                 style: TextStyle(
