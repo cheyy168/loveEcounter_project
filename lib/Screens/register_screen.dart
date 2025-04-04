@@ -102,7 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     if (value == null || value.isEmpty) {
       return 'Please enter a password';
     }
-    if (value.length < 7) {
+    if (value.length < ) {
       return 'Password must be at least 8 characters';
     }
     return null;
