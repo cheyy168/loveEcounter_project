@@ -102,7 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     if (value == null || value.isEmpty) {
       return 'Please enter a password';
     }
-    if (value.length <= 8) {
+    if (value.length < 7) {
       return 'Password must be at least 8 characters';
     }
     return null;
@@ -192,7 +192,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                         borderRadius: BorderRadius.circular(30),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
-                    ),
+                ),
                     onPressed: _isLoading ? null : _register,
                     child: _isLoading
                         ? const SizedBox(
