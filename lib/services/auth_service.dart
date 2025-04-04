@@ -148,7 +148,7 @@ class AuthService {
       case 'operation-not-allowed':
         return 'Email/password login is not enabled';
       case 'weak-password':
-        return 'Password must be at least 6 characters';
+        return 'Password must be at least 8 characters';
       case 'requires-recent-login':
         return 'Please log in again to perform this action';
       case 'too-many-requests':
@@ -168,7 +168,6 @@ class AuthService {
     }
   }
 }
-
 class AuthException implements Exception {
   final String message;
   AuthException(this.message);
