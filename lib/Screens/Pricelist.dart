@@ -136,7 +136,7 @@ class Pricelist extends StatelessWidget {
                       Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Text(
-                          "15 \$",
+                          "20 \$",
                           style: TextStyle(fontSize: 16),
                           textAlign: TextAlign.center,
                         ),
@@ -156,7 +156,7 @@ class Pricelist extends StatelessWidget {
                       Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Text(
-                          "30 \$",
+                          "40 \$",
                           style: TextStyle(fontSize: 16),
                           textAlign: TextAlign.center,
                         ),
@@ -176,7 +176,7 @@ class Pricelist extends StatelessWidget {
                       Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Text(
-                          "37.5 \$",
+                          "50 \$",
                           style: TextStyle(fontSize: 16),
                           textAlign: TextAlign.center,
                         ),
@@ -216,7 +216,7 @@ class Pricelist extends StatelessWidget {
                       Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Text(
-                          "90 \$",
+                          "80 \$",
                           style: TextStyle(fontSize: 16),
                           textAlign: TextAlign.center,
                         ),
@@ -236,7 +236,7 @@ class Pricelist extends StatelessWidget {
                       Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Text(
-                          "20 \$ an hour",
+                          "20 \$ one time",
                           style: TextStyle(fontSize: 16),
                           textAlign: TextAlign.center,
                         ),

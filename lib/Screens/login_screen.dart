@@ -53,16 +53,19 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       return;
     }
 
-    var user = await _authService.login(email, password);
-    if (user != null) {
-      Navigator.pushReplacementNamed(
-        context,
-        '/home',
-        arguments: email, // You can pass the email or user data
-      );
-    } else {
+    try {
+      var user = await _authService.login(email, password);
+      if (user != null) {
+        Navigator.pushReplacementNamed(
+          context,
+          '/home',
+          arguments: email, // You can pass the email or user data
+        );
+      }
+    } catch (e) {
+      // Display error message for incorrect email or password
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Login failed. Please try again.")),
+        SnackBar(content: Text(e.toString())),
       );
     }
   }

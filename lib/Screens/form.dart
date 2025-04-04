@@ -87,8 +87,8 @@ class _ReservationFormState extends State<ReservationForm> {
   ];
 
   final List<String> _optionalDating = [
-    'Hand Holding Arms 10\$',
-    'Lunch plan 7.5\$ / t time',
+    'Hand Holding Arms 10\$' ,
+    'Lunch plan 7.5\$ / 1 time',
   ];
 
   @override
