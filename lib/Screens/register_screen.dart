@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import '../services/firestore_service.dart' as firestore_service;
 import 'information_user_screen.dart';
 
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
